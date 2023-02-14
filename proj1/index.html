@@ -1,7 +1,185 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 1 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Rasterizer</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">Rasterizer</h1>
+<h2 align="middle">SID: 3035907692</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>This project implements a basic rasterizer that can </p>
+
+<h2 align="middle">Rasterization</h2>
+
+<h3 align="middle">Rasterizing single-color triangles without supersampling</h3>
+
+<p> To rasterize a triangle, I used the three-line point-in-triangle test and simply filled in the pixels based on the result of this test. Our implementation checks every pixel in the bounding box of the triangle, that is, every coordinate from the maximum X and minimum X and maximum Y and minimum Y. It's important to note that the orientation of the points is important, else our rasterization will not work correctly. Using cross products, we can determine whether the points given to our function are counterclockwise or clockwise, and swap points if needed.</p>
+
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/p1.png" align="middle" width="400px"/>
+        <figcaption align="middle">Jaggies caused by sampling at a rate of 1/pixel</figcaption>
+      </td>
+    </tr>
+    <br>
+  </table>
+</div>
+
+<p>As for the specifics of our 3-point-line test, we took the normal vector to the lines (which point INTO the triangle — this is guaranteed because we ensured that our points were labeled in a clockwise manner) and took the dot product from the first point in the line to the point and the normal vector. If it's less than zero, then it's outside the triangle. We did this for every line to determine whether a point is inside the triangle or not.</p>
+
+<h3 align="middle">Part 2: Antialiasing triangles</h3>
+<p>Currently, our rasterizer samples at a rate of once per pixel. In order to fix the "jaggies" that appear in the first image, we need to implement supersampling. To do so, we iterate within each pixel vertically at a rate of sqrt(sample_rate) each, allowing us to take sample_rate samples per pixel. We add each sample to a supersample buffer of size width * height * sample_rate. When resolving our framebuffer, we take the average R, G, and B values for each pixel, averaging each sample, and adding them to our framebuffer. The results can be seen as follows.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/p1.png" align="middle" width="400px"/>
+        <figcaption align="middle">No supersampling</figcaption>
+      </td>
+      <td>
+        <img src="images/p2a.png" align="middle" width="400px"/>
+        <figcaption align="middle">sample_rate = 4</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/p2b.png" align="middle" width="400px"/>
+        <figcaption align="middle">sample_rate = 9</figcaption>
+      </td>
+      <td>
+        <img src="images/p2c.png" align="middle" width="400px"/>
+        <figcaption align="middle">sample_rate = 16</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p>Supersampling is a useful anti-aliasing method. By taking multiple samples per pixel and averaging, we can create gradients of color which allows us to connect disconnected portions of the triangle which are rendered without anti-aliasing. Supersampling also eliminated the jaggies effect, giving us much smoother edges.</p>
+
+<h3 align="middle">Part 3: Transforms</h3>
+
+<p>Transforms allowed us to change the original SVGs into the following image.</p>
+
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/california.png" align="middle" width="400px"/>
+        <figcaption align="middle"><a href="https://www.youtube.com/watch?v=WTFSwE6Ae4I">Fine Fresh Fierce</a></figcaption>
+      </td>
+    </tr>
+    <br>
+  </table>
+</div>
+
+<h2 align="middle">Sampling</h2>
+
+<h3 align="middle">Part 4: Barycentric coordinates</h3>
+<p>Barycentric coordinates are a coordinate system that works with respect to the vertices of a triangle. They can be used for interpolation at the vertices, which can be things like color, as shown in this example lifted from Wikimedia Commons, and texture coordinates.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/tri.png" align="middle" width="400px"/>
+        <figcaption align="middle">Color inerpolation using barycentric coords</figcaption>
+      </td>
+    </tr>
+    <br>
+  </table>
+</div>
+
+<p>In our implementation, we used linear algebra to compute our barycentric weights. We define a matrix M where R1 = Ax, Bx, Cx, R2 = Ay, By, Cy, and R3 = 1, 1, 1. When multiplied by a vector alpha, beta, gamma, which are our barycentric coeffcients, we get a vector containing x, y, which is the point in regular corrdinates. As such, we can take the inverse of M times our x, y, 1 vector to find the coefficients.</p>
+
+<h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
+<p>There are two types of pixel sampling — nearest and bilinear. Nearest pixel sampling simply samples from the nearest pixel, as implied by the name, from the mipmap. Bininear pixel sampling samples from the four nearest pixels, then performs linear interpolations to get the final value.</p>
+<div align="middle">
+	<table style="width=100%">
+	  <tr>
+		<td>
+		  <img src="images/nearest_nosup.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Nearest sampling, no supersampling</figcaption>
+		</td>
+		<td>
+		  <img src="images/nearest_16.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Nearest sampling, sample rate of 16</figcaption>
+		</td>
+	  </tr>
+	  <br>
+	  <tr>
+		<td>
+		  <img src="images/bil_nosup.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Bilinear sampling, no supersample</figcaption>
+		</td>
+		<td>
+		  <img src="images/bil_16.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Bilinear sampling, sample rate of 16</figcaption>
+		</td>
+	  </tr>
+	</table>
+  </div>
+<p>To do nearest pixel sampling, we simply rescaled our given u and v values to the correct pixel, and took the nearest pixel by flooring the values. To do binilear sampling, we rescaled as before, found our fractional offsets, then performed two horizontal helper lerps and a final vertical lerp to get our final value.</p>
+
+<h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
+
+<p>In the previous example, we only sampled from the first mipmap level. However, the purpose of mipmaps is to reduce render times and aliasing at long distances, as well as reducing moiré patterns. It takes approximately 33% more memory than sampling images regularly. We can trade off some supersampling precision in favor of mipmapping and bilinear filtering, which produces similar if not better results and is also faster.</p>
+ <p>We've used the famous pack.png to demonstrate some of the effects.</p>
+
+ <div align="middle">
+	<table style="width=100%">
+	  <tr>
+		<td>
+		  <img src="images/0_bil.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Lv 0, Bilinear Sampling</figcaption>
+		</td>
+		<td>
+		  <img src="images/near_near.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Nearest lv, Nearest Sampling</figcaption>
+		</td>
+	  </tr>
+	  <br>
+	  <tr>
+		<td>
+		  <img src="images/0_near.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Lv 0, Nearest Sampling</figcaption>
+		</td>
+		<td>
+		  <img src="images/near_bil.png" align="middle" width="400px"/>
+		  <figcaption align="middle">Nearest lv, Bilinear Sampling</figcaption>
+		</td>
+	  </tr>
+	</table>
+  </div>
+
+</body>
 </html>
