@@ -1,7 +1,352 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 2 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    background-color: white;
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+  kbd {
+    color: #121212;
+  }
+</style>
+<title>CS 184 Mesh Edit</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    }
+  };
+</script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2023</h1>
+<h1 align="middle">Project 2: Mesh Edit</h1>
+<h2 align="middle">SID: 3035907692</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>
+    This project implements a variety of mesh operations. It computes Bézier curves and Bézier patches using de Casteljiau subdivision, which allow meshes to be constructed. In terms of working with the meshes themselves, the half-edge data structure is used extensively. In particular, we manipulate half-edge data structures when implementing the flip and split operations, which are both used in our upsampling algorithm.
+</p>
+<br>
+
+
+<h2 align="middle">Section I: Bezier Curves and Surfaces</h2>
+
+<h3 align="middle">Part 1: Bezier Curves with 1D de Casteljau Subdivision</h3>
+
+
+<p>
+  In order to create Bézier curves, I used de Casteljiau's algorithm. Given $n$ control points, we can perform $\log(n)$ linear interpolations, until we have one point left. Geometrically, we interpolate to gain new points on line segments, then draw new line segments between our new points, and continue to interpolate until we are just left with a point. 
+</p>
+<br>
+
+
+<p>
+  Below is a bezier curve we've made constructed with six control points.
+</p>
+
+<!-- Example of including a single figure -->
+<div align="middle">
+  <img src="images/6p.png" align="middle" width="50%">
+</div>
+<br>
+<br>
+
+<p>
+  Below, we can see the subdivisions made by de Casteljiau's algorithm to construct the final curve.
+</p>
+<!-- Example of including multiple figures -->
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/6p_1.png" align="middle" width="400px"/>
+        <figcaption>Level 0</figcaption>
+      </td>
+      <td>
+        <img src="images/6p_2.png" align="middle" width="400px"/>
+        <figcaption>Level 1</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr align="center">
+      <td>
+        <img src="images/6p_3.png" align="middle" width="400px"/>
+        <figcaption>Level 2</figcaption>
+      </td>
+      <td>
+        <img src="images/6p_4.png" align="middle" width="400px"/>
+        <figcaption>Level 3</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr align="center">
+      <td>
+        <img src="images/6p_5.png" align="middle" width="400px"/>
+        <figcaption>Level 4</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br>
+
+
+<p>
+  Here's another curve created by moving the control points. Note that changing the parameter $t$ may change the position of the line segments, but does not actually change the curve itself.
+</p>
+<div align="middle">
+  <img src="images/6p_diff.png" align="middle" width="50%">
+</div>
+<br>
+
+
+<h3 align="middle">Part 2: Bezier Surfaces with Separable 1D de Casteljau</h3>
+<p>
+  We can extend Bézier curves to Bézier patches as well — we can evaluate some number of curves using control points, then take points on those curves to evaluate more curves towards the other axis, which allows us to create a Bézier surface. 
+</p>
+<br>
+<div align="middle">
+  <img src="images/tp.png" align="middle" width="50%">
+</div>
+<br>
+
+
+<h2 align="middle">Section II: Triangle Meshes and Half-Edge Data Structure</h2>
+
+<h3 align="middle">Part 3: Area-Weighted Vertex Normals</h3>
+<p>
+    To compute the area-weighted vertex normals, we took the area of each triangle using cross products, then multiplied it by the normal to the face of each triangle. We then added this to an intermediary vector, which we took the unit vector of.
+</p>
+
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/p3.png" align="middle" width="400px"/>
+        <figcaption>Phong shading</figcaption>
+      </td>
+      <td>
+        <img src="images/p31.png" align="middle" width="400px"/>
+        <figcaption>Default shading</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br>
+
+<h3 align="middle">Part 4: Edge Flip</h3>
+<p>
+    Implementing the edge flip is mostly just a matter of drawing out the half edges, edges, vertices, and faces, performing the flip in the drawing, and looking at the new assignments. Then, we do a step-by-step update of the half edges, vertices, faces, and edges to their new values. Having one incorrect pointer assignment resulted in the following bug:
+</p>
+<div align="middle">
+  <img src="images/p4bug.png" align="middle" width="50%">
+</div>
+<br>
+
+
+
+<p>
+    Here is the teapot before and after some edge flips, with Phong shading. As you can see, messing with the edges makes the shading wonky.
+</p>
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/p4b4.png" align="middle" width="400px"/>
+        <figcaption>Before</figcaption>
+      </td>
+      <td>
+        <img src="images/p4af.png" align="middle" width="400px"/>
+        <figcaption>After</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br>
+<br>
+
+
+<h3 align="middle">Part 5: Edge Split</h3>
+<p>
+    I implemented the edge split operation similarly to how I implemented edge flips, which was using a drawn diagram and then slowly reassigning each pointer according to the drawing. 
+</p>
+<br>
+
+<p>
+    Here is our mesh splitting in action.
+</p>
+<br>
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/p5b4.png" align="middle" width="400px"/>
+        <figcaption>Before</figcaption>
+      </td>
+      <td>
+        <img src="images/p5af.png" align="middle" width="400px"/>
+        <figcaption>After</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+
+<p>
+    Here's what happens if we spam a bunch of flips and splits.
+</p>
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/p5b4.png" align="middle" width="400px"/>
+        <figcaption>Before</figcaption>
+      </td>
+      <td>
+        <img src="images/p5af2.png" align="middle" width="400px"/>
+        <figcaption>After</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br>
+
+<p>
+    Of course, thanks to one missassigned pointer, we had a a similar bug as before, which took a while to hunt for.
+</p>
+<div align="middle">
+  <img src="images/p4bug.png" align="middle" width="50%">
+</div>
+<br>
+
+
+<br>
+
+
+<h3 align="middle">Part 6: Loop Subdivision for Mesh Upsampling</h3>
+<p>
+    To implement loop subdivision, we first computed new positions for each vertex in the input mesh, and stored them inside the newPosition field of each vertex. We also marked each vertex as being part of the original mesh, which we will use later. Then, we compute the updated vertex positions associated with edges and store them in the newPosition field of each edge. We then split each edge in the mesh, using our earlier markings to ensure that we are only splitting edges in the original mesh. We flip any edge that connects an old and new vertex, and copy positions from the newPosition fields to the position fields.
+</p>
+<br>
+
+
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/sub0.png" align="middle" width="400px"/>
+        <figcaption>No subdivision</figcaption>
+      </td>
+      <td>
+        <img src="images/sub1.png" align="middle" width="400px"/>
+        <figcaption>One subdivision</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr align="center">
+      <td>
+        <img src="images/sub2.png" align="middle" width="400px"/>
+        <figcaption>Two subdivision</figcaption>
+      </td>
+      <td>
+        <img src="images/sub3.png" align="middle" width="400px"/>
+        <figcaption>Three subdivision</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<p>
+    Above we can see the effects of repeated loop subdivision. Sharp edges and corners get smoothed out, and the entire mesh becomes quite curvy. We can somewhat mitigate this by flipping and splitting such that as any edges are perpendicular to the splitting area as possible, as demonstrated below.
+</p>
+<div align="middle">
+  <img src="images/sharp.png" align="middle" width="50%">
+</div>
+<br>
+
+
+
+<p>
+    Here, we have a cube. We perform several loop subdivsions on it — it becomes very lumpy.
+</p>
+
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/lump1.png" align="middle" width="400px"/>
+        <figcaption>No subdivision</figcaption>
+      </td>
+      <td>
+        <img src="images/lump2.png" align="middle" width="400px"/>
+        <figcaption>One subdivision</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr align="center">
+      <td>
+        <img src="images/lump3.png" align="middle" width="400px"/>
+        <figcaption>Two subdivision</figcaption>
+      </td>
+      <td>
+        <img src="images/lump4.png" align="middle" width="400px"/>
+        <figcaption>Three subdivision</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<p>
+  We can solve this very simply: by splitting each diagonal edge on the face of each cube. This ensures a sort of symmetry when our loop subdivision occurs, as before, our subdivided cube would end up longer on the original diagonal. We demonstrate this here.
+</p>
+<div align="middle">
+  <table style="width:100%">
+    <tr align="center">
+      <td>
+        <img src="images/cube1.png" align="middle" width="400px"/>
+        <figcaption>No subdivision</figcaption>
+      </td>
+      <td>
+        <img src="images/cube2.png" align="middle" width="400px"/>
+        <figcaption>One subdivision</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr align="center">
+      <td>
+        <img src="images/cube3.png" align="middle" width="400px"/>
+        <figcaption>Two subdivision</figcaption>
+      </td>
+      <td>
+        <img src="images/cube4.png" align="middle" width="400px"/>
+        <figcaption>Three subdivision</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br>
+</body>
 </html>
