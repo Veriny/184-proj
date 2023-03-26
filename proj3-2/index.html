@@ -1,7 +1,149 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-2 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>  
+    div.padded {  
+      padding-top: 0px;  
+      padding-right: 100px;  
+      padding-bottom: 0.25in;  
+      padding-left: 100px;  
+    }  
+  </style> 
+<title>Your Name  |  CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Assignment 3-2: Additional Features to PathTracer</h1>
+    <h2 align="middle">(Webpage URL)</h2>
+
+    <div class="padded">
+
+
+
+        <h3 align="middle">Part 1. Mirror and Glass Materials</h3>
+
+       
+        <p>
+            Here is a scene rendered with different levels of max bounces.
+        </p>
+        <div align="middle">
+            <table style="width:100%">
+              <tr align="center">
+                <td>
+                  <img src="images/spheres_0.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 0</figcaption>
+                </td>
+                <td>
+                  <img src="images/spheres_1.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 1</figcaption>
+                </td>
+              </tr>
+              <tr align="center">
+                <td>
+                  <img src="images/spheres_2.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 2</figcaption>
+                </td>
+                <td>
+                  <img src="images/spheres_3.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 3</figcaption>
+                </td>
+              </tr>
+              <tr align="center">
+                <td>
+                  <img src="images/spheres_4.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 4</figcaption>
+                </td>
+                <td>
+                  <img src="images/spheres_5.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 5</figcaption>
+                </td>
+              </tr>
+              <tr align="center">
+                <td>
+                  <img src="images/spheres_100.png" align="middle" width="400px"/>
+                  <figcaption>Max Bounce = 100</figcaption>
+                </td>
+              </tr>
+            </table>
+          </div>
+        <br>
+        <p>The relationship between the max bounce count and the appearance of the image largely align with those explored in the first part of this raytracer project — when there are 0 bounces, we only get the direct illumination from the light source. At one bounce, the refractive and reflective spheres are completely black. We only begin to see the effects of reflection and refraction after two bounces and when the number of bounces gets higher, the spheres get brighter. Because there are higher max bounces, this makes sense — more light from global illumination goes onto the spheres to be refracted or reflected.</p>
+        <br>
+
+        
+        
+
+
+
+        <h3 align="middle">Part 4. Depth of Field</h3>
+
+        <p><b>
+            In a few sentences, explain the differences between a pinhole camera model and a thin-lens camera model. 
+        </b></p>
+        <p>
+            Prior to part 4 of this project, we used a pinhole camera model, which enables everything in the scene to be in focus.  A pinhole camera model only allows rays of light to travel in a straight line through a pinhole (single point) which creates an (inverted) image on the other side of the pinhole, and all objects are in focus.  However, in a thin-lens camera model, we simulate the real world (human eyes, cameras etc..) by only allowing objects to be in focus if they lie within a plane that is within the focal distance of the lens.  While thin lenses are a theoretical approximation, it assumes all refract at a plane & converge to a point.  With this, based on the lens radius and focal distance, only certain objects in the scene are in focus, because we have to change the direction of the ray as it passes through the lens.
+        </p>
+        <br>
+        <p><b>
+            Show a "focus stack" where you focus at 4 visibly different depths through a scene. Make sure to include all screenshots.
+        </b></p>
+        <div align="middle">
+        <table style="width:100%">
+            <tr align="center">
+            <td>
+                <img src="images/dragon_d2_5.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            <td>
+                <img src="images/dragon_d5.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            </tr>
+            <tr align="center">
+            <td>
+                <img src="images/dragon_d7_5.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            <td>
+                <img src="images/dragon_dof.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            </tr>
+        </table>
+        </div>
+        <br>
+        <p><b>
+            Show a sequence of 4 pictures with visibly different aperture sizes, all focused at the same point in a scene. Make sure to include all screenshots.
+        </b></p>
+        <div align="middle">
+        <table style="width:100%">
+            <tr align="center">
+            <td>
+                <img src="images/dragon_a1.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            <td>
+                <img src="images/dragon_a23.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            </tr>
+            <tr align="center">
+            <td>
+                <img src="images/dragon_a5.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            <td>
+                <img src="images/dragon_a77.png" align="middle" width="400px"/>
+                <figcaption></figcaption>
+            </td>
+            </tr>
+        </table>
+        </div>
+        <br>
+
+    </div>
+</body>
 </html>
+
