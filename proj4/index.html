@@ -1,7 +1,204 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 4 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    background-color: white;
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+  kbd {
+    color: #121212;
+  }
+</style>
+<title>CS 184 Path Tracer</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    }
+  };
+</script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
+<h1 align="middle">Project 4: Cloth Simulator</h1>
+<h2 align="middle">https://veriny.github.io/184-proj/proj4/index.html</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>This project implements a cloth simulator that models cloth as a grid of point masses and springs. It uses forward kinematics to accurately simulate the behavior of real cloth under forces such as gravity, normal forces from spheres and planes, and spring correction forces that keep the cloth together. Finally, it uses GLSL shaders to give the cloth various, more interesting appearances.</p>
+
+<h2 align="middle">Part I: Masses and springs</h2>
+Here, we show the structure of the wireframe's point masses and springs, as well as isolating the different types of springs.
+<div align="middle">
+  <table style="width:100%">
+      <tr align="center">
+      <td>
+          <img src="images/all.png" align="middle" width="400px"/>
+          <figcaption>All Springs</figcaption>
+      </td>
+      <td>
+          <img src="images/bending.png" align="middle" width="400px"/>
+          <figcaption>Bending Springs Only</figcaption>
+      </td>
+      </tr>
+      <tr align="center">
+      <td>
+          <img src="images/shearing.png" align="middle" width="400px"/>
+          <figcaption>Shearing Springs Only</figcaption>
+      </td>
+      <td>
+          <img src="images/structural.png" align="middle" width="400px"/>
+          <figcaption>Structural Springs Only</figcaption>
+      </td>
+      </tr>
+  </table>
+</div>
+<h2 align="middle">Part II: Simulation via numerica integration</h2>
+Changing the spring constant $k_s$ affects the elasticity of the material. At $k_s = 2$, the material bounces around and almost "wobbles." This is a result of most of the kinetic energy in the point masses being maintained because of the low spring constant; not much force needs to be applied to each spring to displace them from their equilibriums. The damping constant affects the rate at which the cloth swings to its final resting position, and the number of oscillations it makes before finally arriving at equilibrium. The density increases the mass of the cloth at each point, making the sag on the top much more prominent.
+<div align="middle">
+  <table style="width:100%">
+      <tr align="center">
+      <td>
+          <img src="images/wobble.png" align="middle" width="400px"/>
+          <figcaption>Low Spring Constant</figcaption>
+      </td>
+      <td>
+          <img src="images/nodensity.png" align="middle" width="400px"/>
+          <figcaption>Low Density</figcaption>
+      </td>
+      </tr>
+      <tr align="center">
+      <td>
+          <img src="images/highdens.png" align="middle" width="400px"/>
+          <figcaption>High Density</figcaption>
+      </td>
+      <td>
+          <img src="images/normal.png" align="middle" width="400px"/>
+          <figcaption>Shaded, Final Resting State</figcaption>
+      </td>
+      </tr>
+  </table>
+</div>
+<h2 align="middle">Part III: Handling collisions with other objects</h2>
+<div align="middle">
+  <table style="width:100%">
+      <tr align="center">
+      <td>
+          <img src="images/pt5k.png" align="middle" width="400px"/>
+          <figcaption>Lowest density</figcaption>
+      </td>
+      <td>
+          <img src="images/5k.png" align="middle" width="400px"/>
+          <figcaption>Default Density</figcaption>
+      </td>
+      </tr>
+      <tr align="center">
+      <td>
+          <img src="images/50k.png" align="middle" width="400px"/>
+          <figcaption>High Density</figcaption>
+      </td>
+      <td>
+          <img src="images/plane.png" align="middle" width="400px"/>
+          <figcaption>Resting on plane</figcaption>
+      </td>
+      </tr>
+  </table>
+</div>
+<h2 align="middle">Part IV: Handling self-collisions</h2>
+Here's what our cloth looks like as it falls onto the plane.
+<div align="middle">
+  <table style="width:100%">
+      <tr align="center">
+      <td>
+          <img src="images/f1.png" align="middle" width="400px"/>
+          <figcaption></figcaption>
+      </td>
+      <td>
+          <img src="images/f2.png" align="middle" width="400px"/>
+          <figcaption></figcaption>
+      </td>
+      </tr>
+      <tr align="center">
+      <td>
+          <img src="images/f3.png" align="middle" width="400px"/>
+          <figcaption></figcaption>
+      </td>
+      <td>
+          <img src="images/f4.png" align="middle" width="400px"/>
+          <figcaption></figcaption>
+      </td>
+      </tr>
+  </table>
+</div>
+We can also vary $k_s$ and the density.
+<div align="middle">
+  <table style="width:100%">
+      <tr align="center">
+      <td>
+          <img src="images/lowden.png" align="middle" width="400px"/>
+          <figcaption>Low Density</figcaption>
+      </td>
+      <td>
+          <img src="images/highden.png" align="middle" width="400px"/>
+          <figcaption>High Density</figcaption>
+      </td>
+      </tr>
+      <tr align="center">
+      <td>
+          <img src="images/selfcolkslow.png" align="middle" width="400px"/>
+          <figcaption>Low $k_s$</figcaption>
+      </td>
+      <td>
+          <img src="images/selfcolkshigh.png" align="middle" width="400px"/>
+          <figcaption>High $k_s$</figcaption>
+      </td>
+      </tr>
+  </table>
+</div>
+The affect of a low density is that lower density means that the cloth relaxes easier, and is less willing to fold over itself. It's also smoother than the example with high density. It's almost the opposite with spring constant — high spring constant means tha the cloth doesn't fold over itself that much as well as the fact that it's smoother than having a low spring constant.
+<h2 align="middle">Part V: Handling self-collisions</h2>
+Shaders are isolated computer programs that run in parallel on the GPU (graphics processing unit) as opposed to the CPU.  We created shaders in GLSL in this project; they take in inputs (texture files, color parameters, locations etc..) and outputs a vec4 (4 dimensional vector) containing different attributes of the specific point.  In our case, often that attribute was color, which leads to many many different options for shaders depending on the specific use case. 
+The program we used uses vertex and fragment shaders.  Vertex shaders are responsible for manipulating the vertices of 3D objects, while fragment shaders determine the color and shading of individual pixels in the image.  When the object is first rendered on screen, the vertex shader transforms the 3D coordinators of the object to 2D screen coordinates, and then the fragment shader determines the lighting, color, shading and more of each individual pixel.  
+<div align="middle">
+  <img src="images/dbp.png" align="middle" width="400px"/>
+</div>
+For texture mapping,
+<div align="middle">
+  <img src="images/chicken.png" align="middle" width="400px"/>
+</div>
+Bump/Displacement Mapping: Using texture_3
+<div align="middle">
+  <img src="images/bmp.png" align="middle" width="400px"/>
+</div>
+The bump mapping does not affect the actual shape of the cloth or sphere, and just adds a texture that seems to give the cloth height while maintaining the shape of the objects.  However, displacement mapping moves physically the vertices of the objects, altering their shapes.
+
+When we change the coarseness to 16, there is little to no difference between the bump and displacement, as at such a low coarseness, the actual texture doesn’t really change that much.  However, at high coarseness (128), we see a much larger change in the two images, with the displacement mapping proving that shaper folds exist where the texture looks sharp.  However, at this coarseness, my computer did start to freeze up a little bit, and had a tough time rendering the displacement in real time.  But, this is the application to where displacement mapping might make sense. 
+<div align="middle">
+  <img src="images/mirror.png" align="middle" width="400px"/>
+</div>
+
+</body>
 </html>
